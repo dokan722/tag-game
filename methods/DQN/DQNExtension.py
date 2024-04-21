@@ -1,4 +1,4 @@
-from DQNNetwork import DQNNetwork
+from .DQNNetwork import DQNNetwork
 from machin.frame.algorithms import DQN
 import torch
 import torch.nn as nn
@@ -21,12 +21,14 @@ class DQNExtension:
         self.adv_dqn = DQN(adv_net, adv_net_t, torch.optim.Adam, nn.MSELoss(reduction="sum"))
 
     def transform_state(self, name, observation):
+        # changing observations to tensors to fit into Network
         if 'agent' in name:
             return torch.tensor(observation, dtype=torch.float32).view(1, self.agent_obs_space)
         else:
             return torch.tensor(observation, dtype=torch.float32).view(1, self.adv_obs_space)
 
     def get_action(self, name, state):
+        # get action for agents with epsilon greedy
         if 'agent' in name:
             return self.agent_dqn.act_discrete_with_noise({"some_state": state})
         else:
@@ -48,6 +50,6 @@ class DQNExtension:
             }]
         )
 
-    def update_policy(self):
+    def update(self):
         self.agent_dqn.update()
         self.adv_dqn.update()

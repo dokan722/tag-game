@@ -1,4 +1,4 @@
-from PPONetwork import Actor, Critic
+from .PPONetwork import Actor, Critic
 from machin.frame.algorithms import PPO
 import torch
 import torch.nn as nn
@@ -21,6 +21,7 @@ class PPOExtension:
         self.adv_ppo = PPO(adv_actor, adv_critic, torch.optim.Adam, nn.MSELoss(reduction="sum"))
 
     def transform_state(self, name, observation):
+        # changing observations to tensors to fit into Network
         if 'agent' in name:
             return torch.tensor(observation, dtype=torch.float32).view(1, self.agent_obs_space)
         else:
@@ -48,6 +49,6 @@ class PPOExtension:
             }]
         )
 
-    def update_policy(self):
+    def update(self):
         self.agent_ppo.update()
         self.adv_ppo.update()

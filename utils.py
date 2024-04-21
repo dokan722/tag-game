@@ -6,12 +6,11 @@ import imageio
 matplotlib.use('TkAgg')
 
 
-def plot_rewards(training_rewards, model_name, plot_name):
-    keys = list(training_rewards[0].keys())
+def plot_running_avg(values, model_name, plot_name):
+    keys = list(values.keys())
     plt.figure()
     for key in keys:
-        values = [d[key] for d in training_rewards]
-        running_average = np.cumsum(values) / (np.arange(len(values)) + 1)
+        running_average = np.cumsum(values[key]) / (np.arange(len(values[key])) + 1)
         plt.plot(running_average, label=f'{key} (Running Average)')
 
     plt.xlabel('Data Index')
@@ -51,4 +50,15 @@ def create_gif(frame_list, model_name, plot_name):
         os.makedirs(directory)
 
     imageio.mimsave('plots/' + model_name + '/gifs/' + plot_name, frames_np, duration=0.2)
+
+
+def get_env_name(env, accelerate_agents, distance, time):
+    name = env
+    if accelerate_agents:
+        name += '+accelerate'
+    if distance:
+        name += '+distance'
+    if time:
+        name += 'time'
+    return name
 
