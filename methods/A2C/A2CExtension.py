@@ -1,28 +1,30 @@
-from .DQNNetwork import DQNNetwork
-from machin.frame.algorithms import DQN
+from .A2CNetwork import Actor, Critic
+from machin.frame.algorithms import A2C
 import torch
 import torch.nn as nn
 
 
-class DQNExtension:
+class A2CExtension:
     def __init__(self, obs_space):
         self.n_actions = 5
         self.obs_space = obs_space
 
-        net = DQNNetwork(self.n_actions, self.obs_space)
-        net_t = DQNNetwork(self.n_actions, self.obs_space)
-        self.dqn = DQN(net, net_t, torch.optim.Adam, nn.MSELoss(reduction="sum"))
+        #device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+        actor = Actor(self.n_actions, self.obs_space)
+        critic = Critic(self.obs_space)
+
+        self.a2c = A2C(actor, critic, torch.optim.Adam, nn.MSELoss(reduction="sum"))
 
     def transform_state(self, observation):
         # changing observations to tensors to fit into Network
         return torch.tensor(observation, dtype=torch.float32).view(1, self.obs_space)
 
     def get_action(self, state):
-        # get action for agents with epsilon greedy
-        return self.dqn.act_discrete_with_noise({"some_state": state})
+        return self.a2c.act({"some_state": state})[0]
 
     def store_transition(self, state, action, next_state, reward, terminal):
-        self.dqn.store_episode(
+        self.a2c.store_episode(
             [{
                 "state": {"some_state": state},
                 "action": {"action": action},
@@ -33,4 +35,4 @@ class DQNExtension:
         )
 
     def update(self):
-        self.dqn.update()
+        self.a2c.update()

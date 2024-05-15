@@ -2,44 +2,27 @@ from .PPONetwork import Actor, Critic
 from machin.frame.algorithms import PPO
 import torch
 import torch.nn as nn
-import utils
 
 
 class PPOExtension:
-    def __init__(self):
+    def __init__(self, obs_space):
         self.n_actions = 5
-        self.agent_obs_space = 10
-        self.adv_obs_space = 12
+        self.obs_space = obs_space
 
-        agent_actor = Actor(self.n_actions, self.agent_obs_space)
-        agent_critic = Critic(self.agent_obs_space)
+        actor = Actor(self.n_actions, self.obs_space)
+        critic = Critic(self.obs_space)
 
-        adv_actor = Actor(self.n_actions, self.adv_obs_space)
-        adv_critic = Critic(self.adv_obs_space)
+        self.ppo = PPO(actor, critic, torch.optim.Adam, nn.MSELoss(reduction="sum"))
 
-        self.agent_ppo = PPO(agent_actor, agent_critic, torch.optim.Adam, nn.MSELoss(reduction="sum"))
-        self.adv_ppo = PPO(adv_actor, adv_critic, torch.optim.Adam, nn.MSELoss(reduction="sum"))
-
-    def transform_state(self, name, observation):
+    def transform_state(self, observation):
         # changing observations to tensors to fit into Network
-        if 'agent' in name:
-            return torch.tensor(observation, dtype=torch.float32).view(1, self.agent_obs_space)
-        else:
-            return torch.tensor(observation, dtype=torch.float32).view(1, self.adv_obs_space)
+        return torch.tensor(observation, dtype=torch.float32).view(1, self.obs_space)
 
-    def get_action(self, name, state):
-        if 'agent' in name:
-            return self.agent_ppo.act({"some_state": state})[0]
-        else:
-            return self.adv_ppo.act({"some_state": state})[0]
+    def get_action(self, state):
+        return self.ppo.act({"some_state": state})[0]
 
-    def store_transition(self, name, state, action, next_state, reward, terminal):
-        if 'agent' in name:
-            ppo = self.agent_ppo
-        else:
-            ppo = self.adv_ppo
-
-        ppo.store_episode(
+    def store_transition(self, state, action, next_state, reward, terminal):
+        self.ppo.store_episode(
             [{
                 "state": {"some_state": state},
                 "action": {"action": action},
@@ -50,5 +33,4 @@ class PPOExtension:
         )
 
     def update(self):
-        self.agent_ppo.update()
-        self.adv_ppo.update()
+        self.ppo.update()
