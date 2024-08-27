@@ -2,16 +2,19 @@ from .DQNNetwork import DQNNetwork
 from machin.frame.algorithms import DQN
 import torch
 import torch.nn as nn
+import os
 
 
 class DQNExtension:
-    def __init__(self, obs_space):
+    def __init__(self, obs_space, is_centralized):
+        factor = 5 if is_centralized else 1
         self.n_actions = 5
         self.obs_space = obs_space
 
-        net = DQNNetwork(self.n_actions, self.obs_space)
-        net_t = DQNNetwork(self.n_actions, self.obs_space)
-        self.dqn = DQN(net, net_t, torch.optim.Adam, nn.MSELoss(reduction="sum"))
+        net = DQNNetwork(self.n_actions, self.obs_space, factor)
+        net_t = DQNNetwork(self.n_actions, self.obs_space, factor)
+        self.dqn = DQN(net, net_t, torch.optim.Adam, nn.MSELoss(reduction="sum"), epsilon_decay=0.9999985)
+        self.learning = True
 
     def transform_state(self, observation):
         # changing observations to tensors to fit into Network
@@ -19,18 +22,23 @@ class DQNExtension:
 
     def get_action(self, state):
         # get action for agents with epsilon greedy
-        return self.dqn.act_discrete_with_noise({"some_state": state})
+        return self.dqn.act_discrete_with_noise({"state": state})
 
-    def store_transition(self, state, action, next_state, reward, terminal):
-        self.dqn.store_episode(
-            [{
-                "state": {"some_state": state},
-                "action": {"action": action},
-                "next_state": {"some_state": next_state},
-                "reward": reward,
-                "terminal": terminal,
-            }]
-        )
+    def store_transitions(self, transitions):
+        if self.learning:
+            self.dqn.store_episode(transitions)
 
     def update(self):
-        self.dqn.update()
+        if self.learning:
+            return self.dqn.update()
+        return torch.tensor([0.0])
+
+    def save(self, directory, name):
+        directory = os.path.dirname(directory + '/' + name + '/')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        self.dqn.save(directory)
+
+    def load(self, directory, learning):
+        self.learning = learning
+        self.dqn.load(directory)

@@ -7,32 +7,24 @@ import time
 
 if __name__ == '__main__':
     start_time = time.time()
-    agent_accelerate = True
-    punish_for_distance = True
-    punish_lazy = True
 
-    # env_name = 'simple_tag'
-    # env = simple_tag_v3.parallel_env(render_mode='rgb_array', max_cycles=50, num_obstacles=0)
+    agent_accelerate = False
+    punish_for_distance = False
+    punish_lazy = False
+    mode = 'centralized'
+    random_no_action = False
+    algo_list = ['ppo', 'ppo']
+    policy_name = 'PPO'
+    env_name = 'simple_tag'
 
-    env_name = 'simple_tag_modified'
     env = simple_tag_modified.parallel_env(render_mode='rgb_array', max_cycles=50, num_obstacles=0,
                                            agent_accelerate=agent_accelerate, punish_for_distance=punish_for_distance, punish_lazy=punish_lazy)
 
-    # policy_name = 'DQN'
-    # policy = DQNExtension()
+    policy = CommonExtension(mode=mode, random_no_action=random_no_action, algorithm_list=algo_list)
 
-    policy_name = 'test'
-    policy = CommonExtension(False, True, ['a2c','a2c', 'a2c', 'a2c'])
-
-    # policy_name = 'test'
-    # policy = DDPGExtension()
-    # env_name = 'test'
-    # env = simple_tag_modified.parallel_env(render_mode='rgb_array', max_cycles=50, num_obstacles=0, agent_accelerate=True, punish_for_distance=True, punish_lazy=True)
-
-    main_dir = utils.get_env_name(env_name, agent_accelerate, punish_for_distance, punish_lazy) + '/' + policy_name
+    main_dir = utils.get_env_name(env_name, agent_accelerate, punish_for_distance, punish_lazy) + '/' + utils.get_policy_name(policy_name, mode, random_no_action)
     runner = Runner(env, policy, main_dir)
     rewards = runner.train()
     elapsed_time = time.time() - start_time
 
-    print(f"Elapsed time: {elapsed_time:.2f} seconds")
-
+    utils.write_time(main_dir, elapsed_time)
