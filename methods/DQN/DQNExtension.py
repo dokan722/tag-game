@@ -42,3 +42,6 @@ class DQNExtension:
     def load(self, directory, learning):
         self.learning = learning
         self.dqn.load(directory)
+
+    def inc_entropy_weight(self):
+        pass

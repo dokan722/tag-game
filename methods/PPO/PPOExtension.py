@@ -14,7 +14,7 @@ class PPOExtension:
         actor = Actor(self.n_actions, self.obs_space, factor)
         critic = Critic(self.obs_space, factor)
 
-        self.ppo = PPO(actor, critic, torch.optim.Adam, nn.MSELoss(reduction="sum"))
+        self.ppo = PPO(actor, critic, torch.optim.Adam, nn.MSELoss(reduction="sum"), entropy_weight=-0.01)
         self.learning = True
 
     def transform_state(self, observation):
@@ -42,3 +42,6 @@ class PPOExtension:
     def load(self, directory, learning):
         self.learning = learning
         self.ppo.load(directory)
+
+    def inc_entropy_weight(self):
+        self.ppo.entropy_weight += 0.001

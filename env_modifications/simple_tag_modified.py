@@ -20,7 +20,8 @@ class raw_env_mod(SimpleEnv, EzPickle):
         agent_max_speed=1.3,
         agent_max_accel=4.0,
         punish_for_distance=False,
-        punish_lazy=True
+        punish_lazy=False,
+        reward_for_distance=False
     ):
         EzPickle.__init__(
             self,
@@ -34,7 +35,7 @@ class raw_env_mod(SimpleEnv, EzPickle):
         scenario = ModifiedScenario(agent_accelerate=agent_accelerate, time_to_accelerate=(max_cycles//2),
                                     agent_base_speed=agent_base_speed, agent_base_accel=agent_base_accel,
                                     agent_max_speed=agent_max_speed, agent_max_accel=agent_max_accel,
-                                    punish_for_distance=punish_for_distance, punish_lazy=punish_lazy)
+                                    punish_for_distance=punish_for_distance, punish_lazy=punish_lazy, reward_for_distance=reward_for_distance)
         world = scenario.make_world(num_good, num_adversaries, num_obstacles)
         SimpleEnv.__init__(
             self,

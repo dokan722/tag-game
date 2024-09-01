@@ -7,7 +7,7 @@ import numpy as np
 
 class ModifiedScenario(Scenario):
     def __init__(self, agent_accelerate=False, time_to_accelerate=12, agent_base_speed=1.0, agent_base_accel=3.0,
-                 agent_max_speed=1.3, agent_max_accel=4.0, punish_for_distance=False, punish_lazy=True):
+                 agent_max_speed=1.3, agent_max_accel=4.0, punish_for_distance=False, reward_for_distance=False, punish_lazy=False):
         super(ModifiedScenario, self).__init__()
         self.adv_lazy_counter = 0
         self.agent_accelerate = agent_accelerate
@@ -21,6 +21,7 @@ class ModifiedScenario(Scenario):
         self.accelerate_counter = 0
         self.punish_lazy = punish_lazy
         self.punish_for_distance = punish_for_distance
+        self.reward_for_distance = reward_for_distance
 
     def reset_world(self, world, np_random):
         Scenario.reset_world(self, world, np_random)
@@ -40,7 +41,14 @@ class ModifiedScenario(Scenario):
     def agent_reward(self, agent, world):
         if self.agent_accelerate:
             self.accelerate_agent(agent)
-        return Scenario.agent_reward(self, agent, world)
+        rew = Scenario.agent_reward(self, agent, world)
+        if self.reward_for_distance:
+            # last agent is the one being chased
+            dist1 = np.linalg.norm(world.agents[0].state.p_pos - agent.state.p_pos)
+            dist2 = np.linalg.norm(world.agents[1].state.p_pos - agent.state.p_pos)
+            dist3 = np.linalg.norm(world.agents[2].state.p_pos - agent.state.p_pos)
+            rew += (dist1 + dist2 + dist3) / 10
+        return rew
 
     def adversary_reward(self, agent, world):
         rew = Scenario.adversary_reward(self, agent, world)

@@ -16,7 +16,7 @@ class A2CExtension:
         actor = Actor(self.n_actions, self.obs_space, factor)
         critic = Critic(self.obs_space, factor)
 
-        self.a2c = A2C(actor, critic, torch.optim.Adam, nn.MSELoss(reduction="sum"))
+        self.a2c = A2C(actor, critic, torch.optim.Adam, nn.MSELoss(reduction="sum"), actor_learning_rate=0.001, entropy_weight=-0.05)
         self.learning = True
 
     def transform_state(self, observation):
@@ -44,3 +44,6 @@ class A2CExtension:
     def load(self, directory, learning):
         self.learning = learning
         self.a2c.load(directory)
+
+    def inc_entropy_weight(self):
+        self.a2c.entropy_weight += 0.001
