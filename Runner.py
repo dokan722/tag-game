@@ -5,8 +5,8 @@ from PIL import Image
 
 
 class Runner:
-    def __init__(self, env, combined_policy, model_name):
-        self.max_episodes = 50000
+    def __init__(self, env, combined_policy, model_name, max_episodes):
+        self.max_episodes = max_episodes
         self.map_interval = self.max_episodes / 100  # intrval for plotting heatmap and generating gif
         self.model_name = model_name
         self.env = env
