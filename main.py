@@ -8,7 +8,7 @@ import time
 if __name__ == '__main__':
     start_time = time.time()
 
-    agent_accelerate = True
+    agent_accelerate = False
     distance_in_reward = False
     punish_lazy = False
     mode = 'not-shared'
@@ -16,7 +16,7 @@ if __name__ == '__main__':
     algo_list = ['dqn', 'dqn', 'dqn', 'dqn']
     policy_name = 'DQN-test'
     env_name = 'simple_tag'
-    max_episodes = 50000
+    max_episodes = 600
 
     env = simple_tag_modified.parallel_env(render_mode='rgb_array', max_cycles=50, num_obstacles=0,
                                            agent_accelerate=agent_accelerate, punish_for_distance=distance_in_reward,

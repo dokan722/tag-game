@@ -12,21 +12,21 @@ def plot_running_avg(values, model_name, plot_name, x_name, y_name, distinct=Tru
     keys = list(values.keys())
     if folder_name is None:
         folder_name = plot_name
+    directory = os.path.dirname('plots/' + model_name + '/' + folder_name + '/')
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     if distinct:
         for key in keys:
             plot_running_avg({key: values[key]}, model_name, plot_name + '_' + key, x_name, y_name, False, folder_name, window=window)
     plt.figure()
     for key in keys:
+        save_list(values[key], 'plots/' + model_name + '/' + folder_name + '/' + plot_name + '_' + key + '.txt')
         running_average = np.convolve(values[key], np.ones(window), mode='valid') / window
         plt.plot(running_average, label=f'{key} (Running Average)')
 
     plt.xlabel(x_name)
     plt.ylabel(y_name)
     plt.legend()
-
-    directory = os.path.dirname('plots/' + model_name + '/' + folder_name + '/')
-    if not os.path.exists(directory):
-        os.makedirs(directory)
 
     plt.savefig('plots/' + model_name + '/' + folder_name + '/' + plot_name + '.png')
     plt.close('all')
@@ -38,11 +38,11 @@ def calculate_distances_to_agent(positions):
     dist2 = [math.dist(x, y) for x, y in zip(agent_positions, positions['adversary_1'])]
     dist3 = [math.dist(x, y) for x, y in zip(agent_positions, positions['adversary_2'])]
     dist_avg = [np.mean(x) for x in zip(dist1, dist2, dist3)]
-    return {'adversary_avg': dist_avg, 'adversary_0': dist1, 'adversary_1': dist2, 'adversary_2': dist3}
+    return {'adversary_avg': dist_avg, 'adversary_0': dist1, 'adversary_1': dist2, 'adversary_2': dist3}, np.mean([min(x) for x in zip (dist1, dist2, dist3)])
 
 
 def plot_avg_distance_to_agent(positions, model_name, plot_name, x_name, y_name, folder_name):
-    plot_running_avg(calculate_distances_to_agent(positions), model_name, plot_name, x_name, y_name, window=3, folder_name=folder_name)
+    plot_running_avg(calculate_distances_to_agent(positions)[0], model_name, plot_name, x_name, y_name, window=3, folder_name=folder_name)
 
 
 def plot_positions(positions, model_name, plot_name):
@@ -199,10 +199,21 @@ def calculate_pursuit(positions):
 
 def get_pursuit_avg(positions):
     return np.mean(calculate_pursuit(positions))
+
 def plot_pursuit(positions, model_name, plot_name, x_name, y_name, folder_name):
     max_norms = calculate_pursuit(positions)
     plot_running_avg({'adversaries pursuit accordance': max_norms}, model_name, plot_name, x_name, y_name, distinct=False, folder_name=folder_name, window=1)
 
+
+def save_list(data, filename):
+    with open(filename, 'w') as file:
+        file.write(','.join(map(str, data)))
+
+
+def load_list(filename):
+    with open(filename, 'r') as file:
+        data = list(map(int, file.read().split(',')))
+    return data
 
 
 

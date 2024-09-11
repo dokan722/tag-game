@@ -7,7 +7,7 @@ from PIL import Image
 class Runner:
     def __init__(self, env, combined_policy, model_name, max_episodes):
         self.max_episodes = max_episodes
-        self.map_interval = self.max_episodes / 100  # intrval for plotting heatmap and generating gif
+        self.map_interval = self.max_episodes // 100  # intrval for plotting heatmap and generating gif
         self.model_name = model_name
         self.env = env
         self.combined_policy = combined_policy
@@ -28,6 +28,8 @@ class Runner:
                 triangle_coverage = []
                 average_cooperations = []
                 average_pursuit_accordance = []
+                agent_caught_counts = []
+                mean_dist_to_closest = []
             save_episode = (episode + 1) % self.map_interval == 0
             if save_episode:
                 frame_list = []
@@ -74,10 +76,13 @@ class Runner:
             triangle_coverage.append(utils.get_triangle_coverage(episode_positions))
             average_cooperations.append(utils.get_cooperation_avg(episode_positions))
             average_pursuit_accordance.append(utils.get_pursuit_avg(episode_positions))
-            for adv, dis in utils.calculate_distances_to_agent(episode_positions).items():
+            dists, mean = utils.calculate_distances_to_agent(episode_positions)
+            mean_dist_to_closest.append(mean)
+            for adv, dis in dists.items():
                 average_distances_to_agent[adv].append(np.mean(dis))
 
             episode_positions = {agent: [] for agent in all_agents}
+            agent_caught_counts.append(self.env.unwrapped.scenario.agent_caught_counter)
 
         utils.plot_running_avg(distances, self.model_name, 'distances', 'Episodes', 'Distances')
         utils.plot_running_avg(rewards_sum, self.model_name, 'reward_plot', 'Episodes', 'Rewards')
@@ -86,5 +91,9 @@ class Runner:
         utils.plot_running_avg({'agent': triangle_coverage}, self.model_name, 'triangle_coverage', 'Episodes', 'Fraction of time inside triangle', distinct=False)
         utils.plot_running_avg({'adversary cooperation': average_cooperations}, self.model_name, 'adversary_cooperation', 'Episodes', 'Average cooperation per episode', distinct=False)
         utils.plot_running_avg({'adversary pursuit': average_pursuit_accordance}, self.model_name, 'adversary_pursuit', 'Episodes', 'Average pursuit accordance per episode', distinct=False)
+        utils.save_list([np.mean(agent_caught_counts[-self.map_interval:]), np.mean(triangle_coverage[-self.map_interval:]),
+                         np.mean(mean_dist_to_closest[-self.map_interval:]), np.mean(distances['agent_0'][-self.map_interval:]),
+                         np.mean(distances['adversary_0'][-self.map_interval:]), np.mean(distances['adversary_1'][-self.map_interval:]),
+                         np.mean(distances['adversary_2'][-self.map_interval:])], 'plots/' + self.model_name + '/values.txt')
         self.combined_policy.save(self.model_name)
 

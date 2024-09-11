@@ -48,6 +48,8 @@ class raw_env_mod(SimpleEnv, EzPickle):
         )
         self.metadata["name"] = "simple_tag_v3"
 
+def test():
+    return 0
 
 env = make_env(raw_env_mod)
 parallel_env = parallel_wrapper_fn(env)

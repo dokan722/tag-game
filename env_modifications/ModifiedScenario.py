@@ -19,10 +19,12 @@ class ModifiedScenario(Scenario):
         self.reward_for_distance = reward_for_distance
         self.agent_speed_inc = (agent_max_speed - agent_base_speed) / time_to_accelerate
         self.agent_acc_inc = (agent_max_accel - agent_base_accel) / time_to_accelerate
+        self.agent_caught_counter = 0
 
     def reset_world(self, world, np_random):
         Scenario.reset_world(self, world, np_random)
         self.adv_lazy_counter = 0
+        self.agent_caught_counter = 0
         if self.agent_accelerate and self.agent_speed < self.agent_max_speed:
             for agent in world.agents:
                 if not agent.adversary:
@@ -35,6 +37,8 @@ class ModifiedScenario(Scenario):
 
     def agent_reward(self, agent, world):
         rew = Scenario.agent_reward(self, agent, world)
+        if rew == -10:
+            self.agent_caught_counter += 1
         if self.reward_for_distance:
             # last agent is the one being chased
             dist1 = np.linalg.norm(world.agents[0].state.p_pos - agent.state.p_pos)
