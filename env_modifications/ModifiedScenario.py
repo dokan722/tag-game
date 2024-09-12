@@ -37,8 +37,11 @@ class ModifiedScenario(Scenario):
 
     def agent_reward(self, agent, world):
         rew = Scenario.agent_reward(self, agent, world)
-        if rew == -10:
-            self.agent_caught_counter += 1
+        adversaries = self.adversaries(world)
+        if agent.collide:
+            for a in adversaries:
+                if self.is_collision(a, agent):
+                    self.agent_caught_counter += 1
         if self.reward_for_distance:
             # last agent is the one being chased
             dist1 = np.linalg.norm(world.agents[0].state.p_pos - agent.state.p_pos)
